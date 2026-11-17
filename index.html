@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setor Dana Kegiatan - Festival Rote Ndao Cerdas 2026</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase JS SDK CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tone.js CDN untuk Musik Latar Instrumental Otomatis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <style>
+        /* Definisi Animasi Kustom */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Kelas Animasi untuk Tailwind */
+        .animate-fade-in-up {
+            animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-scale-in {
+            animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-slide-in-down {
+            animation: slideInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .delay-200 { animation-delay: 200ms; }
+        
+        /* Efek transisi halus untuk semua input */
+        input, button, .group {
+            transition: all 0.3s ease;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        rote: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        gold: {
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between selection:bg-rote-600 selection:text-white">
+
+    <!-- Header / Banner Acara dengan Gambar Latar -->
+    <header class="text-white shadow-lg relative overflow-hidden bg-slate-900 w-full" 
+            style="background-image: url('https://raw.githubusercontent.com/atno26/Form-Rote-Cerdas-2026/main/banner.jpeg'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat;">
+        
+        <!-- Overlay Gelap Transparan (Agar teks tetap terbaca jelas meski gambar latar terang) -->
+        <div class="absolute inset-0 bg-slate-900/65 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-slate-900/70 pointer-events-none"></div>
+
+        <div class="max-w-4xl mx-auto px-4 py-8 md:py-12 lg:py-16 relative z-10 text-center opacity-0 animate-fade-in-up">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-gold-400 text-xs md:text-sm font-semibold tracking-wide uppercase mb-4 md:mb-6">
+                <i data-lucide="award" class="w-4 h-4 md:w-5 md:h-5"></i>
+                <span>Memperingati Hari Guru Tahun 2026</span>
+            </div>
+            <h1 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-3 md:mb-4 leading-tight">
+                FESTIVAL ROTE NDAO CERDAS
+            </h1>
+            <p class="text-rote-100 text-sm sm:text-base md:text-lg max-w-2xl mx-auto font-normal px-4">
+                Formulir Konfirmasi & Bukti Penyetoran Dana Partisipasi SMP
+            </p>
+        </div>
+    </header>
+
+    <!-- Konten Utama -->
+    <main class="flex-grow w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-14">
+        
+        <!-- Box Notifikasi / Alert Custom (Pengganti alert() browser) -->
+        <div id="notification-box" class="hidden mb-6 p-4 rounded-xl border flex items-start gap-3 transition-all duration-300 shadow-sm">
+            <i id="notification-icon" data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-0.5"></i>
+            <div class="flex-1 text-sm">
+                <p id="notification-title" class="font-semibold"></p>
+                <p id="notification-message" class="mt-0.5 opacity-90"></p>
+            </div>
+            <button type="button" onclick="hideNotification()" class="text-current opacity-60 hover:opacity-100 p-1">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Kartu Formulir Penyetoran -->
+        <div id="form-card" class="bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden opacity-0 animate-fade-in-up delay-200">
+            <!-- Header Kartu -->
+            <div class="bg-slate-50/80 border-b border-slate-100 px-6 py-4 md:px-8 md:py-5 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-rote-100 text-rote-700 flex items-center justify-center">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base md:text-lg font-bold text-slate-800">Data Penyetoran Dana</h2>
+                        <p class="text-xs md:text-sm text-slate-500">Pastikan data dan bukti transfer sudah sesuai</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Input -->
+            <form id="setor-form" class="p-6 sm:p-8 md:p-10 space-y-6 md:space-y-8" novalidate>
+                
+                <!-- 1. Nama Instansi/Perusahaan/Lembaga -->
+                <div>
+                    <label for="nama_sekolah" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        1. Nama Instansi/Perusahaan/Lembaga <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i data-lucide="school" class="w-5 h-5"></i>
+                        </div>
+                        <input type="text" id="nama_sekolah" name="nama_sekolah" required
+                            class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rote-500/20 focus:border-rote-600 transition-all text-sm sm:text-base">
+                    </div>
+                </div>
+
+                <!-- 2. Nama Pimpinan -->
+                <div>
+                    <label for="nama_kepsek" class="block text-sm md:text-base font-semibold text-slate-700 mb-1.5 md:mb-2">
+                        2. Nama Pimpinan <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i data-lucide="user-check" class="w-5 h-5"></i>
+                        </div>
+                        <input type="text" id="nama_kepsek" name="nama_kepsek" required
+                            class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rote-500/20 focus:border-rote-600 transition-all text-sm sm:text-base">
+                    </div>
+                </div>
+
+                <!-- Grid 2 Kolom untuk Nominal Sumbangan & Tanggal (Menyesuaikan di Tablet & PC) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                    <!-- 3. Nominal Sumbangan -->
+                    <div>
+                        <label for="jumlah_dana_display" class="block text-sm md:text-base font-semibold text-slate-700 mb-1.5 md:mb-2">
+                            3. Nominal Sumbangan <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <span class="text-slate-500 font-semibold text-sm">Rp</span>
+                            </div>
+                            <input type="text" id="jumlah_dana_display" inputmode="numeric" required
+                                class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-rote-500/20 focus:border-rote-600 transition-all text-sm sm:text-base">
+                            <!-- Input tersembunyi untuk menyimpan nilai angka murni -->
+                            <input type="hidden" id="jumlah_dana" name="jumlah_dana">
+                        </div>
+                    </div>
+
+                    <!-- 4. Tanggal Penyetoran -->
+                    <div>
+                        <label for="tanggal_setor" class="block text-sm md:text-base font-semibold text-slate-700 mb-1.5 md:mb-2">
+                            4. Tanggal Penyetoran <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i data-lucide="calendar" class="w-5 h-5"></i>
+                            </div>
+                            <input type="date" id="tanggal_setor" name="tanggal_setor" required
+                                class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rote-500/20 focus:border-rote-600 transition-all text-sm sm:text-base">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Unggah Bukti Transfer -->
+                <div>
+                    <label class="block text-sm md:text-base font-semibold text-slate-700 mb-1.5 md:mb-2">
+                        5. Unggah Bukti Transfer <span class="text-rose-500">*</span>
+                    </label>
+                    <div id="dropzone" class="relative border-2 border-dashed border-slate-300 rounded-2xl p-6 sm:p-8 text-center hover:border-rote-500 hover:bg-rote-50/30 transition-all cursor-pointer group">
+                        <input type="file" id="bukti_transfer" name="bukti_transfer" accept="image/jpeg,image/png,image/jpg,application/pdf" required
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        
+                        <!-- Tampilan Awal Sebelum File Dipilih -->
+                        <div id="upload-placeholder" class="space-y-2">
+                            <div class="w-12 h-12 rounded-full bg-rote-50 text-rote-600 mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                            </div>
+                            <div class="text-sm font-medium text-slate-700">
+                                <span class="text-rote-600 font-semibold">Klik untuk memilih file</span> atau seret bukti transfer ke sini
+                            </div>
+                            <p class="text-xs text-slate-400">Format: JPG, PNG, atau PDF (Maksimal 5 MB)</p>
+                        </div>
+
+                        <!-- Preview File Setelah Dipilih -->
+                        <div id="file-preview-container" class="hidden relative z-20">
+                            <img id="image-preview" src="" alt="Preview Bukti Transfer" class="hidden max-h-48 mx-auto rounded-xl shadow-md mb-3 object-contain">
+                            <div class="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm">
+                                <i data-lucide="file-check-2" class="w-5 h-5 text-emerald-600 shrink-0"></i>
+                                <div class="text-left">
+                                    <p id="file-name" class="text-xs sm:text-sm font-semibold text-slate-800 truncate max-w-[180px] sm:max-w-xs"></p>
+                                    <p id="file-size" class="text-[11px] text-slate-500"></p>
+                                </div>
+                                <button type="button" id="remove-file-btn" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Hapus file">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. Tombol Submit -->
+                <div class="pt-2">
+                    <button type="submit" id="submit-btn"
+                        class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-rote-700 to-rote-800 hover:from-rote-800 hover:to-rote-900 text-white font-bold text-sm sm:text-base shadow-lg shadow-rote-700/25 flex items-center justify-center gap-2.5 active:scale-[0.99] transition-all cursor-pointer">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                        <span>Submit Data Penyetoran</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Kartu Sukses / Ucapan Terima Kasih (Muncul Setelah Submit) -->
+        <div id="success-card" class="hidden bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 p-8 sm:p-10 text-center">
+            <div class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center mb-6">
+                <i data-lucide="check-circle-2" class="w-11 h-11"></i>
+            </div>
+            
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 leading-snug">
+                Trimakasih atas Partisipasi Anda Menyukseskan Festival Rote Ndao Cerdas Tahun 2026
+            </h2>
+            <p class="text-slate-500 text-sm sm:text-base max-w-lg mx-auto mb-8">
+                Data penyetoran dan bukti transfer dari sekolah Anda telah berhasil tercatat di sistem panitia.
+            </p>
+
+            <!-- Ringkasan Data yang Dikirim -->
+            <div class="bg-slate-50 rounded-xl p-5 sm:p-6 border border-slate-200/80 text-left max-w-lg mx-auto mb-8 space-y-3 text-sm">
+                <div class="flex justify-between gap-4 border-b border-slate-200/70 pb-2.5">
+                    <span class="text-slate-500">Nama Instansi/Perusahaan/Lembaga</span>
+                    <span id="summary-sekolah" class="font-semibold text-slate-800 text-right"></span>
+                </div>
+                <div class="flex justify-between gap-4 border-b border-slate-200/70 pb-2.5">
+                    <span class="text-slate-500">Nama Pimpinan</span>
+                    <span id="summary-kepsek" class="font-semibold text-slate-800 text-right"></span>
+                </div>
+                <div class="flex justify-between gap-4 border-b border-slate-200/70 pb-2.5">
+                    <span class="text-slate-500">Nominal Sumbangan</span>
+                    <span id="summary-dana" class="font-bold text-rote-700 text-right"></span>
+                </div>
+                <div class="flex justify-between gap-4">
+                    <span class="text-slate-500">Tanggal Penyetoran</span>
+                    <span id="summary-tanggal" class="font-semibold text-slate-800 text-right"></span>
+                </div>
+            </div>
+
+            <button type="button" onclick="resetFormToNew()"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-colors cursor-pointer">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Input Penyetoran Sekolah Lainnya</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer / Footnote Bendahara -->
+    <footer class="bg-white border-t border-slate-200/80 py-6 px-4 relative mt-8">
+        <div class="max-w-3xl mx-auto text-center space-y-1">
+            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Bendahara Panitia Festival Rote Ndao Cerdas 2026</p>
+            <p class="text-sm sm:text-base font-bold text-slate-700">Helmi Lestrina Lango, S.PAK.,Gr <br> Sony Sanu, S.Pd</p>
+            <div class="pt-2">
+                <button type="button" onclick="openBendaharaModal()" class="inline-flex items-center gap-1.5 text-xs font-medium text-rote-600 hover:text-rote-800 bg-rote-50 hover:bg-rote-100 px-3 py-1.5 rounded-full transition-colors cursor-pointer">
+                    <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                    <span>Panel Rekap Bendahara</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Footnote Create by NYM -->
+        <div class="absolute bottom-2 right-3 md:bottom-4 md:right-6">
+            <p class="text-[10px] md:text-xs text-slate-300 hover:text-slate-400 transition-colors font-medium cursor-default">
+                Create by NYM
+            </p>
+        </div>
+    </footer>
+
+    <!-- Modal Panel Rekap Bendahara -->
+    <div id="bendahara-modal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-scale-in">
+            <!-- Header Modal -->
+            <div class="px-6 py-4 bg-rote-900 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-gold-400"></i>
+                    <div>
+                        <h3 class="font-bold text-base sm:text-lg">Panel Rekapitulasi Bendahara</h3>
+                        <p class="text-xs text-rote-200">Festival Rote Ndao Cerdas 2026</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeBendaharaModal()" class="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Form Login PIN Bendahara -->
+            <div id="bendahara-login-view" class="p-8 text-center max-w-md mx-auto my-auto space-y-4">
+                <div class="w-14 h-14 rounded-full bg-rote-100 text-rote-700 mx-auto flex items-center justify-center">
+                    <i data-lucide="key-round" class="w-7 h-7"></i>
+                </div>
+                <h4 class="text-lg font-bold text-slate-800">Verifikasi Bendahara</h4>
+                <p class="text-xs sm:text-sm text-slate-500">Masukkan PIN akses untuk melihat rekap dana masuk dan bukti transfer sekolah.</p>
+                <div class="space-y-3 pt-2">
+                    <input type="password" id="bendahara-pin-input" placeholder="Masukkan PIN Bendahara)"
+                        class="w-full px-4 py-3 text-center tracking-widest font-bold rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rote-500">
+                    <p id="pin-error-msg" class="hidden text-xs text-rose-600 font-medium">PIN yang Anda masukkan salah.</p>
+                    <button type="button" onclick="verifyBendaharaPin()"
+                        class="w-full py-3 rounded-xl bg-rote-700 hover:bg-rote-800 text-white font-semibold text-sm transition-colors cursor-pointer">
+                        Buka Data Rekap
+                    </button>
+                </div>
+            </div>
+
+            <!-- Konten Dashboard Rekap (Muncul setelah PIN benar) -->
+            <div id="bendahara-dashboard-view" class="hidden flex-1 flex flex-col overflow-hidden">
+                <!-- Ringkasan Statistik -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 p-6 bg-slate-50 border-b border-slate-200">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+                        <p class="text-xs text-slate-500 font-medium">Total Dana Terkumpul</p>
+                        <p id="stat-total-dana" class="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1">Rp 0</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+                        <p class="text-xs text-slate-500 font-medium">Total Sekolah Menyetor</p>
+                        <p id="stat-total-sekolah" class="text-xl sm:text-2xl font-extrabold text-rote-700 mt-1">0 Sekolah</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+                        <p class="text-xs text-slate-500 font-medium">Total Guru ASN Terdata</p>
+                        <p id="stat-total-guru" class="text-xl sm:text-2xl font-extrabold text-slate-800 mt-1">0 Orang</p>
+                    </div>
+                </div>
+
+                <!-- Tabel Data -->
+                <div class="flex-1 overflow-auto p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-bold text-slate-800 text-sm sm:text-base">Daftar Penyetoran Masuk</h4>
+                        <button type="button" onclick="loadRekapData()" class="inline-flex items-center gap-1.5 text-xs font-semibold text-rote-700 hover:text-rote-900 bg-rote-50 px-3 py-1.5 rounded-lg cursor-pointer">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                            <span>Muat Ulang</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 border-b border-slate-200">
+                                    <th class="py-3 px-4 font-semibold">No</th>
+                                    <th class="py-3 px-4 font-semibold">Nama Sekolah</th>
+                                    <th class="py-3 px-4 font-semibold">Kepala Sekolah</th>
+                                    <th class="py-3 px-4 font-semibold">Jumlah Dana</th>
+                                    <th class="py-3 px-4 font-semibold">Tgl Setor</th>
+                                    <th class="py-3 px-4 font-semibold text-center">Guru ASN</th>
+                                    <th class="py-3 px-4 font-semibold text-center">Bukti</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rekap-table-body" class="divide-y divide-slate-100 bg-white">
+                                <tr>
+                                    <td colspan="7" class="py-8 text-center text-slate-400">Memuat data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tombol Kontrol Musik Mengambang (Pojok Kanan Bawah) -->
+    <div class="fixed bottom-5 right-5 z-50 flex items-center gap-2">
+        <button id="music-toggle-btn" type="button" onclick="toggleBackgroundMusic()" title="Putar / Hentikan Musik Latar"
+            class="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-rote-800/95 hover:bg-rote-900 text-white shadow-xl shadow-rote-900/30 backdrop-blur-md border border-white/20 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+            <span id="music-pulse" class="relative flex h-2.5 w-2.5">
+                <span id="music-ping" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-gold-400 opacity-75"></span>
+                <span id="music-dot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-400"></span>
+            </span>
+            <i id="music-icon" data-lucide="volume-x" class="w-4 h-4 text-gold-400"></i>
+            <span id="music-label" class="text-xs font-semibold tracking-wide">Putar Musik</span>
+        </button>
+    </div>
+
+    <!-- Elemen Audio MP3 dari GitHub Anda (Aktif Otomatis) -->
+    <audio id="custom-bg-audio" autoplay loop preload="auto" playsinline>
+        <source src="https://raw.githubusercontent.com/atno26/Form-Rote-Cerdas-2026/main/musik.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Script Aplikasi & Integrasi Supabase -->
+    <script>
+        // Inisialisasi ikon Lucide
+        lucide.createIcons();
+
+        /**
+         * ============================================================================
+         * SISTEM AUTOPLAY MUSIK LATAR
+         * ============================================================================
+         * Mendukung 2 mode:
+         * 1. File MP3 kustom dari GitHub (jika tag <source> pada #custom-bg-audio diisi).
+         * 2. Musik Instrumental Melodi Hangat bawaan (menggunakan Tone.js) jika belum ada MP3.
+         */
+        let isMusicPlaying = false;
+        let userExplicitlyMuted = false;
+        let synthLoop = null;
+        let bgSynth = null;
+        const customAudioEl = document.getElementById('custom-bg-audio');
+        const hasCustomMp3 = customAudioEl.querySelector('source') !== null;
+
+        function updateMusicUI(playing) {
+            isMusicPlaying = playing;
+            const icon = document.getElementById('music-icon');
+            const label = document.getElementById('music-label');
+            const ping = document.getElementById('music-ping');
+            const dot = document.getElementById('music-dot');
+
+            if (playing) {
+                icon.setAttribute('data-lucide', 'volume-2');
+                label.textContent = 'Musik Aktif';
+                ping.classList.remove('hidden');
+                dot.classList.replace('bg-slate-400', 'bg-gold-400');
+            } else {
+                icon.setAttribute('data-lucide', 'volume-x');
+                label.textContent = 'Putar Musik';
+                ping.classList.add('hidden');
+                dot.classList.replace('bg-gold-400', 'bg-slate-400');
+            }
+            lucide.createIcons();
+        }
+
+        async function startBackgroundMusic() {
+            if (isMusicPlaying) return true;
+
+            try {
+                if (hasCustomMp3) {
+                    customAudioEl.volume = 0.5;
+                    await customAudioEl.play();
+                    updateMusicUI(true);
+                    return true;
+                } else {
+                    // Jalankan melodi instrumental lembut menggunakan Tone.js
+                    await Tone.start();
+                    if (!bgSynth) {
+                        bgSynth = new Tone.PolySynth(Tone.Synth, {
+                            oscillator: { type: 'sine' },
+                            envelope: { attack: 0.4, decay: 0.5, sustain: 0.4, release: 1.5 }
+                        }).toDestination();
+                        bgSynth.volume.value = -14; // Volume lembut agar nyaman di telinga
+
+                        // Progresi nada inspiratif & hangat (G Major - D Major - Em - C Major)
+                        const chords = [
+                            ['G3', 'B3', 'D4', 'G4'],
+                            ['D3', 'F#3', 'A3', 'D4'],
+                            ['E3', 'G3', 'B3', 'E4'],
+                            ['C3', 'E3', 'G3', 'C4']
+                        ];
+                        let step = 0;
+                        synthLoop = new Tone.Loop((time) => {
+                            const chord = chords[step % chords.length];
+                            bgSynth.triggerAttackRelease(chord, '2n', time);
+                            step++;
+                        }, '1m');
+                    }
+                    Tone.Transport.bpm.value = 76;
+                    synthLoop.start(0);
+                    Tone.Transport.start();
+                    updateMusicUI(true);
+                    return true;
+                }
+            } catch (err) {
+                // Browser menahan autoplay hingga ada interaksi pengguna
+                updateMusicUI(false);
+                return false;
+            }
+        }
+
+        function stopBackgroundMusic() {
+            if (hasCustomMp3) {
+                customAudioEl.pause();
+            } else if (typeof Tone !== 'undefined') {
+                Tone.Transport.pause();
+            }
+            updateMusicUI(false);
+        }
+
+        function toggleBackgroundMusic() {
+            if (isMusicPlaying) {
+                userExplicitlyMuted = true;
+                stopBackgroundMusic();
+            } else {
+                userExplicitlyMuted = false;
+                startBackgroundMusic();
+            }
+        }
+
+        // Coba jalankan otomatis saat halaman dimuat
+        window.addEventListener('DOMContentLoaded', () => {
+            startBackgroundMusic();
+        });
+
+        // Putar otomatis saat layar disentuh/diklik pertama kali hingga musik benar-benar berhasil menyala
+        const interactionEvents = ['pointerdown', 'touchstart', 'click', 'keydown'];
+        async function unlockAudioOnInteraction(e) {
+            // Abaikan jika user sengaja menekan tombol mute atau jika musik sudah aktif
+            if (userExplicitlyMuted || isMusicPlaying || e.target.closest('#music-toggle-btn')) {
+                return;
+            }
+
+            const started = await startBackgroundMusic();
+            if (started) {
+                interactionEvents.forEach(evt => {
+                    document.removeEventListener(evt, unlockAudioOnInteraction, true);
+                });
+            }
+        }
+
+        interactionEvents.forEach(evt => {
+            document.addEventListener(evt, unlockAudioOnInteraction, true);
+        });
+
+        // Fallback Cerdas: Jika browser memblokir autoplay awal, langsung putar musik pada sentuhan/klik pertama di layar
+        ['click', 'touchstart', 'keydown'].forEach(evt => {
+            document.addEventListener(evt, function unlockAudioOnFirstInteraction() {
+                if (!isMusicPlaying) {
+                    startBackgroundMusic();
+                }
+                // Hapus listener setelah interaksi pertama agar tombol mute manual user tetap dihormati
+                ['click', 'touchstart', 'keydown'].forEach(e => {
+                    document.removeEventListener(e, unlockAudioOnFirstInteraction);
+                });
+            }, { once: true });
+        });
+
+        /**
+         * ============================================================================
+         * KONFIGURASI SUPABASE (BACKEND)
+         * ============================================================================
+         * Cara menghubungkan ke Supabase Anda:
+         * 1. Buat proyek baru di https://supabase.com
+         * 2. Masuk ke SQL Editor dan jalankan perintah berikut untuk membuat tabel:
+         * 
+         *    CREATE TABLE penyetoran_dana (
+         *      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+         *      created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+         *      nama_sekolah TEXT NOT NULL,
+         *      nama_kepsek TEXT NOT NULL,
+         *      jumlah_dana NUMERIC NOT NULL,
+         *      tanggal_setor DATE NOT NULL,
+         *      jumlah_guru_asn INTEGER NOT NULL,
+         *      bukti_transfer_url TEXT
+         *    );
+         * 
+         *    -- Aktifkan RLS & izinkan publik mengisi form (INSERT)
+         *    ALTER TABLE penyetoran_dana ENABLE ROW LEVEL SECURITY;
+         *    CREATE POLICY "Izinkan publik insert data" ON penyetoran_dana FOR INSERT WITH CHECK (true);
+         * 
+         * 3. Masuk ke menu Storage -> Buat Bucket baru bernama: bukti_transfer (centang Public Bucket)
+         *    Lalu tambahkan Policy pada bucket tersebut agar publik bisa Upload (INSERT) & Lihat (SELECT).
+         * 4. Salin Project URL dan Anon Public Key dari Project Settings -> API ke variabel di bawah ini:
+         */
+        const SUPABASE_URL = 'https://bbctabdsutapqxnzlual.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_OtAc2B-4lDSwTQmuMX1qog_j2MKaPLP';
+
+        let supabaseClient = null;
+        const isSupabaseConfigured = SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY !== 'GANTI_DENGAN_SUPABASE_ANON_KEY_ANDA';
+
+        if (isSupabaseConfigured) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+
+        // Elemen DOM
+        const form = document.getElementById('setor-form');
+        const formCard = document.getElementById('form-card');
+        const successCard = document.getElementById('success-card');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        const danaDisplayInput = document.getElementById('jumlah_dana_display');
+        const danaHiddenInput = document.getElementById('jumlah_dana');
+        const tanggalInput = document.getElementById('tanggal_setor');
+        
+        const fileInput = document.getElementById('bukti_transfer');
+        const dropzone = document.getElementById('dropzone');
+        const uploadPlaceholder = document.getElementById('upload-placeholder');
+        const filePreviewContainer = document.getElementById('file-preview-container');
+        const fileNameEl = document.getElementById('file-name');
+        const fileSizeEl = document.getElementById('file-size');
+        const imagePreviewEl = document.getElementById('image-preview');
+        const removeFileBtn = document.getElementById('remove-file-btn');
+
+        // Set default tanggal ke hari ini
+        tanggalInput.valueAsDate = new Date();
+
+        // Format Input Rupiah Otomatis
+        danaDisplayInput.addEventListener('input', function(e) {
+            let rawValue = this.value.replace(/[^0-9]/g, '');
+            danaHiddenInput.value = rawValue;
+            
+            if (rawValue) {
+                this.value = new Intl.NumberFormat('id-ID').format(parseInt(rawValue, 10));
+            } else {
+                this.value = '';
+            }
+        });
+
+        // Penanganan Unggah File & Preview
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Efek Drag & Drop
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.add('border-rote-600', 'bg-rote-50/60', 'scale-[1.02]');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-rote-600', 'bg-rote-50/60', 'scale-[1.02]');
+            });
+        });
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Validasi ukuran maksimal 5MB
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showNotification('error', 'Ukuran File Terlalu Besar', 'Maksimal ukuran file bukti transfer adalah 5 MB.');
+                clearSelectedFile();
+                return;
+            }
+
+            // Validasi tipe file
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+            if (!allowedTypes.includes(file.type)) {
+                showNotification('error', 'Format File Tidak Didukung', 'Harap unggah file berformat JPG, PNG, atau PDF.');
+                clearSelectedFile();
+                return;
+            }
+
+            hideNotification();
+            fileNameEl.textContent = file.name;
+            fileSizeEl.textContent = formatBytes(file.size);
+
+            uploadPlaceholder.classList.add('hidden');
+            filePreviewContainer.classList.remove('hidden');
+
+            // Tampilkan preview gambar jika file adalah gambar
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreviewEl.src = e.target.result;
+                    imagePreviewEl.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreviewEl.classList.add('hidden');
+                imagePreviewEl.src = '';
+            }
+        }
+
+        removeFileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            clearSelectedFile();
+        });
+
+        function clearSelectedFile() {
+            fileInput.value = '';
+            uploadPlaceholder.classList.remove('hidden');
+            filePreviewContainer.classList.add('hidden');
+            imagePreviewEl.classList.add('hidden');
+            imagePreviewEl.src = '';
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (!+bytes) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        // Notifikasi Custom
+        function showNotification(type, title, message) {
+            const box = document.getElementById('notification-box');
+            const icon = document.getElementById('notification-icon');
+            const titleEl = document.getElementById('notification-title');
+            const msgEl = document.getElementById('notification-message');
+
+            // Reset kelas agar animasi bisa jalan berulang
+            box.classList.remove('hidden', 'bg-rose-50', 'border-rose-200', 'text-rose-800', 'bg-amber-50', 'border-amber-200', 'text-amber-800', 'animate-slide-in-down');
+            void box.offsetWidth; // Trigger DOM reflow (trik agar animasi mengulang)
+            
+            if (type === 'error') {
+                box.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-800');
+                icon.setAttribute('data-lucide', 'alert-circle');
+            } else {
+                box.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-800');
+                icon.setAttribute('data-lucide', 'info');
+            }
+
+            box.classList.add('animate-slide-in-down');
+
+            titleEl.textContent = title;
+            msgEl.textContent = message;
+            lucide.createIcons();
+            box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function hideNotification() {
+            document.getElementById('notification-box').classList.add('hidden');
+        }
+
+        // Submit Form
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            hideNotification();
+
+            const namaSekolah = document.getElementById('nama_sekolah').value.trim();
+            const namaKepsek = document.getElementById('nama_kepsek').value.trim();
+            const jumlahDana = danaHiddenInput.value;
+            const tanggalSetor = tanggalInput.value;
+            const file = fileInput.files[0];
+
+            // Validasi Kelengkapan Form
+            if (!namaSekolah || !namaKepsek || !jumlahDana || parseInt(jumlahDana) <= 0 || !tanggalSetor || !file) {
+                showNotification('error', 'Data Belum Lengkap', 'Mohon lengkapi seluruh kolom bertanda bintang (*) dan unggah bukti transfer sebelum mengirim.');
+                return;
+            }
+
+            // Ubah status tombol menjadi loading
+            setLoadingState(true);
+
+            try {
+                let publicFileUrl = 'demo-mode-file.jpg';
+
+                // Jika Supabase sudah dikonfigurasi, unggah file & simpan ke database
+                if (isSupabaseConfigured && supabaseClient) {
+                    // 1. Buat nama file unik agar tidak tertimpa
+                    const fileExt = file.name.split('.').pop();
+                    const cleanSchoolName = namaSekolah.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                    const uniqueFileName = `${Date.now()}_${cleanSchoolName}.${fileExt}`;
+
+                    // 2. Upload bukti transfer ke Supabase Storage (Bucket: 'bukti_transfer')
+                    const { data: uploadData, error: uploadError } = await supabaseClient
+                        .storage
+                        .from('bukti_transfer')
+                        .upload(uniqueFileName, file);
+
+                    if (uploadError) throw new Error('Gagal mengunggah bukti transfer: ' + uploadError.message);
+
+                    // 3. Ambil URL publik dari file yang baru diunggah
+                    const { data: urlData } = supabaseClient
+                        .storage
+                        .from('bukti_transfer')
+                        .getPublicUrl(uniqueFileName);
+
+                    publicFileUrl = urlData.publicUrl;
+
+                    // 4. Simpan data ke tabel 'penyetoran_dana'
+                    const { error: insertError } = await supabaseClient
+                        .from('penyetoran_dana')
+                        .insert([
+                            {
+                                nama_sekolah: namaSekolah,
+                                nama_kepsek: namaKepsek,
+                                jumlah_dana: parseFloat(jumlahDana),
+                                tanggal_setor: tanggalSetor,
+                                jumlah_guru_asn: 0,
+                                bukti_transfer_url: publicFileUrl
+                            }
+                        ]);
+
+                    if (insertError) throw new Error('Gagal menyimpan data penyetoran: ' + insertError.message);
+                } else {
+                    // Simulasi jeda jaringan jika masih dalam Mode Demo (belum isi URL Supabase)
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+
+                // Tampilkan Ringkasan & Pesan Terima Kasih
+                showSuccessScreen({
+                    namaSekolah,
+                    namaKepsek,
+                    jumlahDana,
+                    tanggalSetor
+                });
+
+            } catch (err) {
+                console.error(err);
+                showNotification('error', 'Terjadi Kesalahan', err.message || 'Gagal mengirim data. Silakan periksa koneksi internet Anda dan coba lagi.');
+            } finally {
+                setLoadingState(false);
+            }
+        });
+
+        function setLoadingState(isLoading) {
+            if (isLoading) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                submitBtn.innerHTML = `
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Mengirim Data & Bukti Transfer...</span>
+                `;
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                submitBtn.innerHTML = `
+                    <i data-lucide="send" class="w-5 h-5"></i>
+                    <span>Submit Data Penyetoran</span>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        function showSuccessScreen(data) {
+            document.getElementById('summary-sekolah').textContent = data.namaSekolah;
+            document.getElementById('summary-kepsek').textContent = data.namaKepsek;
+            document.getElementById('summary-dana').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(parseInt(data.jumlahDana, 10));
+            
+            // Format tanggal Indonesia
+            const dateObj = new Date(data.tanggalSetor + 'T00:00:00');
+            document.getElementById('summary-tanggal').textContent = dateObj.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            formCard.classList.add('hidden');
+            successCard.classList.remove('hidden');
+            successCard.classList.add('animate-scale-in'); // Tambahkan efek membesar
+            
+            // Efek loncat-loncat (bounce) pada ikon centang selama 2 detik
+            const successIcon = successCard.querySelector('.bg-emerald-100');
+            successIcon.classList.add('animate-bounce');
+            setTimeout(() => {
+                successIcon.classList.remove('animate-bounce');
+            }, 2500);
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetFormToNew() {
+            form.reset();
+            danaHiddenInput.value = '';
+            tanggalInput.valueAsDate = new Date();
+            clearSelectedFile();
+            hideNotification();
+
+            successCard.classList.add('hidden');
+            successCard.classList.remove('animate-scale-in');
+            
+            // Trigger ulang animasi fade-in pada form
+            formCard.classList.remove('hidden', 'animate-fade-in-up', 'opacity-0');
+            void formCard.offsetWidth; 
+            formCard.classList.add('animate-fade-in-up', 'opacity-0');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /**
+         * ============================================================================
+         * LOGIKA PANEL REKAP BENDAHARA
+         * ============================================================================
+         */
+        const BENDAHARA_PIN = '@helmi'; // Anda dapat mengganti PIN rahasia Anda di sini
+
+        function openBendaharaModal() {
+            document.getElementById('bendahara-modal').classList.remove('hidden');
+            document.getElementById('bendahara-pin-input').value = '';
+            document.getElementById('pin-error-msg').classList.add('hidden');
+        }
+
+        function closeBendaharaModal() {
+            document.getElementById('bendahara-modal').classList.add('hidden');
+        }
+
+        function verifyBendaharaPin() {
+            const inputPin = document.getElementById('bendahara-pin-input').value;
+            if (inputPin === BENDAHARA_PIN) {
+                document.getElementById('bendahara-login-view').classList.add('hidden');
+                document.getElementById('bendahara-dashboard-view').classList.remove('hidden');
+                loadRekapData();
+            } else {
+                document.getElementById('pin-error-msg').classList.remove('hidden');
+            }
+        }
+
+        // Izinkan tekan Enter saat memasukkan PIN
+        document.getElementById('bendahara-pin-input')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') verifyBendaharaPin();
+        });
+
+        async function loadRekapData() {
+            const tbody = document.getElementById('rekap-table-body');
+            tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-slate-400">Mengambil data dari database...</td></tr>';
+
+            if (!isSupabaseConfigured || !supabaseClient) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-amber-600 bg-amber-50/50 px-4">
+                            <strong>Backend Supabase Belum Dihubungkan!</strong><br>
+                            Silakan isi <code>SUPABASE_URL</code> dan <code>SUPABASE_ANON_KEY</code> pada kode HTML Anda terlebih dahulu.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('penyetoran_dana')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-slate-400">Belum ada sekolah yang menyetor dana.</td></tr>';
+                    document.getElementById('stat-total-dana').textContent = 'Rp 0';
+                    document.getElementById('stat-total-sekolah').textContent = '0 Sekolah';
+                    document.getElementById('stat-total-guru').textContent = '0 Orang';
+                    return;
+                }
+
+                let totalDana = 0;
+                let totalGuru = 0;
+                tbody.innerHTML = '';
+
+                data.forEach((row, index) => {
+                    totalDana += Number(row.jumlah_dana || 0);
+                    totalGuru += Number(row.jumlah_guru_asn || 0);
+
+                    const formattedDana = 'Rp ' + new Intl.NumberFormat('id-ID').format(row.jumlah_dana);
+                    const dateObj = new Date(row.tanggal_setor + 'T00:00:00');
+                    const formattedDate = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition-colors';
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 text-slate-500">${index + 1}</td>
+                        <td class="py-3 px-4 font-semibold text-slate-800">${row.nama_sekolah}</td>
+                        <td class="py-3 px-4 text-slate-600">${row.nama_kepsek}</td>
+                        <td class="py-3 px-4 font-bold text-emerald-600">${formattedDana}</td>
+                        <td class="py-3 px-4 text-slate-600">${formattedDate}</td>
+                        <td class="py-3 px-4 text-center font-medium text-slate-700">${row.jumlah_guru_asn}</td>
+                        <td class="py-3 px-4 text-center">
+                            <a href="${row.bukti_transfer_url}" target="_blank" rel="noopener noreferrer" 
+                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rote-50 text-rote-700 hover:bg-rote-100 font-semibold text-xs transition-colors">
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Lihat
+                            </a>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                document.getElementById('stat-total-dana').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(totalDana);
+                document.getElementById('stat-total-sekolah').textContent = `${data.length} Sekolah`;
+                document.getElementById('stat-total-guru').textContent = `${totalGuru} Orang`;
+                lucide.createIcons();
+
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-rose-600">Gagal memuat data: ${err.message}</td></tr>`;
+            }
+        }
+    </script>
+</body>
+</html>
